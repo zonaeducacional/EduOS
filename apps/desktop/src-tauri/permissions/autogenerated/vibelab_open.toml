@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-vibelab-open"
+description = "Enables the vibelab_open command without any pre-configured scope."
+commands.allow = ["vibelab_open"]
+
+[[permission]]
+identifier = "deny-vibelab-open"
+description = "Denies the vibelab_open command without any pre-configured scope."
+commands.deny = ["vibelab_open"]

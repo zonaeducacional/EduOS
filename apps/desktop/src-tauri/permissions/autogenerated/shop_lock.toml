@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shop-lock"
+description = "Enables the shop_lock command without any pre-configured scope."
+commands.allow = ["shop_lock"]
+
+[[permission]]
+identifier = "deny-shop-lock"
+description = "Denies the shop_lock command without any pre-configured scope."
+commands.deny = ["shop_lock"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-education-open"
+description = "Enables the education_open command without any pre-configured scope."
+commands.allow = ["education_open"]
+
+[[permission]]
+identifier = "deny-education-open"
+description = "Denies the education_open command without any pre-configured scope."
+commands.deny = ["education_open"]

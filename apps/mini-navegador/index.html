@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; img-src https:; style-src 'self'; base-uri 'none'; frame-src 'none'" />
+  <title>Mini Navegador</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="tabbar">
+    <div id="tabs"></div>
+    <button id="new-tab" title="Nova aba (Ctrl+T)">+</button>
+  </div>
+
+  <div id="toolbar">
+    <button id="back" title="Voltar (Alt+←)">←</button>
+    <button id="forward" title="Avançar (Alt+→)">→</button>
+    <button id="reload" title="Recarregar (Ctrl+R)">⟳</button>
+    <input id="address" type="text" spellcheck="false" autocomplete="off"
+           placeholder="Pesquise ou digite um endereço" />
+    <button id="star" title="Favoritar (Ctrl+D)">☆</button>
+  </div>
+
+  <div id="bookmarks"></div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

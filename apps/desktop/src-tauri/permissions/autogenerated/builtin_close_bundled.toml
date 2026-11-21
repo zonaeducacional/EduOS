@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-builtin-close-bundled"
+description = "Enables the builtin_close_bundled command without any pre-configured scope."
+commands.allow = ["builtin_close_bundled"]
+
+[[permission]]
+identifier = "deny-builtin-close-bundled"
+description = "Denies the builtin_close_bundled command without any pre-configured scope."
+commands.deny = ["builtin_close_bundled"]

@@ -1,0 +1,41 @@
+{
+  "identifier": "lojinha",
+  "description": "Permite os comandos do Estúdio e da Lojinha somente na janela local do EduOS.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "allow-shop-has-key",
+    "allow-shop-unlock",
+    "allow-shop-lock",
+    "allow-studio-select",
+    "allow-studio-sign",
+    "allow-studio-export",
+    "allow-studio-public",
+    "allow-shop-trust-local",
+    "allow-shop-trust-file",
+    "allow-shop-select",
+    "allow-shop-install",
+    "allow-shop-list",
+    "allow-shop-change",
+    "allow-shop-publish",
+    "allow-shop-publications",
+    "allow-shop-unpublish",
+    "allow-catalog-list",
+    "allow-catalog-install",
+    "allow-runtime-list",
+    "allow-runtime-event",
+    "allow-builtin-files",
+    "allow-native-app-open",
+    "allow-native-app-can-switch",
+    "allow-vibelab-open",
+    "allow-vibelab-close",
+    "allow-builtin-save-text",
+    "allow-builtin-save-binary",
+    "allow-builtin-microphone",
+    "allow-builtin-open-office",
+    "allow-builtin-close-office",
+    "allow-builtin-open-bundled",
+    "allow-builtin-close-bundled"
+  ]
+}

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-native-app-can-switch"
+description = "Enables the native_app_can_switch command without any pre-configured scope."
+commands.allow = ["native_app_can_switch"]
+
+[[permission]]
+identifier = "deny-native-app-can-switch"
+description = "Denies the native_app_can_switch command without any pre-configured scope."
+commands.deny = ["native_app_can_switch"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shop-publish"
+description = "Enables the shop_publish command without any pre-configured scope."
+commands.allow = ["shop_publish"]
+
+[[permission]]
+identifier = "deny-shop-publish"
+description = "Denies the shop_publish command without any pre-configured scope."
+commands.deny = ["shop_publish"]

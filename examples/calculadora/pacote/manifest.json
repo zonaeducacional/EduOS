@@ -1,0 +1,11 @@
+{
+  "id": "br.eduos.calculadora-demo",
+  "name": "Calculadora da SDK",
+  "version": "1.0.0",
+  "entry": "calculadora.wasm",
+  "profiles": ["administrator", "teacher", "student"],
+  "permissions": ["clipboard_write"],
+  "icon": "icon.png",
+  "category": "education",
+  "window": { "width": 440, "height": 385 }
+}

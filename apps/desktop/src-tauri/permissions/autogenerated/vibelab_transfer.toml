@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-vibelab-transfer"
+description = "Enables the vibelab_transfer command without any pre-configured scope."
+commands.allow = ["vibelab_transfer"]
+
+[[permission]]
+identifier = "deny-vibelab-transfer"
+description = "Denies the vibelab_transfer command without any pre-configured scope."
+commands.deny = ["vibelab_transfer"]

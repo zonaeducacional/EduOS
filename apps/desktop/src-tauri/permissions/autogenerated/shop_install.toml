@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shop-install"
+description = "Enables the shop_install command without any pre-configured scope."
+commands.allow = ["shop_install"]
+
+[[permission]]
+identifier = "deny-shop-install"
+description = "Denies the shop_install command without any pre-configured scope."
+commands.deny = ["shop_install"]

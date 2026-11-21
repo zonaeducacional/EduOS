@@ -1,0 +1,1 @@
+O build Linux x86-64 copia os AppImages originais para esta pasta. Os arquivos gerados são empacotados nos recursos do EduOS. A localização das imagens pode ser configurada conforme o ponto de retomada em AGENTS.md.

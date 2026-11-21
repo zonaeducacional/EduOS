@@ -1,0 +1,23 @@
+{
+  "name": "@eduos/desktop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:factory": "pnpm build && node ../../scripts/build-puter-apps.mjs && node ../../scripts/build-native-apps.mjs",
+    "svelte-check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@eduos/desktop-core": "workspace:*",
+    "@tauri-apps/api": "^2.12.5",
+    "lucide-svelte": "^0.468.0",
+    "svelte": "^5"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^6",
+    "@tauri-apps/cli": "^2",
+    "svelte-check": "^4",
+    "vite": "^7"
+  }
+}

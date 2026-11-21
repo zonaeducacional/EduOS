@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-studio-public"
+description = "Enables the studio_public command without any pre-configured scope."
+commands.allow = ["studio_public"]
+
+[[permission]]
+identifier = "deny-studio-public"
+description = "Denies the studio_public command without any pre-configured scope."
+commands.deny = ["studio_public"]

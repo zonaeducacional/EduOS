@@ -1,0 +1,24 @@
+[package]
+name = "eduos"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+eduos-package = { path = "../../../packages/eduos-package" }
+eduos-store = { path = "../../../packages/eduos-store" }
+serde = { version = "1", features = ["derive"] }
+tempfile = "3"
+zeroize = "1"
+tiny_http = "0.12"
+open = "5"
+serde_json = "1"
+wasmi = "2"
+arboard = { version = "3", default-features = false, features = ["wayland-data-control"] }
+
+[dev-dependencies]
+wat = "1"

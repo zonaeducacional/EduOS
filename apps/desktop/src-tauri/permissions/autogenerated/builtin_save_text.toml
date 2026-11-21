@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-builtin-save-text"
+description = "Enables the builtin_save_text command without any pre-configured scope."
+commands.allow = ["builtin_save_text"]
+
+[[permission]]
+identifier = "deny-builtin-save-text"
+description = "Denies the builtin_save_text command without any pre-configured scope."
+commands.deny = ["builtin_save_text"]

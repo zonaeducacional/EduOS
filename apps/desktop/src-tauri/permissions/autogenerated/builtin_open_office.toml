@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-builtin-open-office"
+description = "Enables the builtin_open_office command without any pre-configured scope."
+commands.allow = ["builtin_open_office"]
+
+[[permission]]
+identifier = "deny-builtin-open-office"
+description = "Denies the builtin_open_office command without any pre-configured scope."
+commands.deny = ["builtin_open_office"]

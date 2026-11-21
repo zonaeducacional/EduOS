@@ -1,0 +1,44 @@
+{
+  "name": "mini-navegador",
+  "version": "0.1.0",
+  "description": "Navegador simples feito com Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "45.4.1",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "br.eduos.mininavegador",
+    "productName": "Mini Navegador",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "styles.css",
+      "renderer.js",
+      "newtab.html"
+    ],
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "category": "Network"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "artifactName": "mini-navegador.${ext}",
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "private": true,
+  "author": "EduOS"
+}

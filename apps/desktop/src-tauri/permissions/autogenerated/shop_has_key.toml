@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shop-has-key"
+description = "Enables the shop_has_key command without any pre-configured scope."
+commands.allow = ["shop_has_key"]
+
+[[permission]]
+identifier = "deny-shop-has-key"
+description = "Denies the shop_has_key command without any pre-configured scope."
+commands.deny = ["shop_has_key"]

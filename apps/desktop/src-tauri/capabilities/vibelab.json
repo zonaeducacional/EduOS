@@ -1,0 +1,10 @@
+{
+  "identifier": "vibelab",
+  "description": "Operações locais do gerenciador VibeLab na pasta do perfil.",
+  "windows": ["vibelab-*"],
+  "permissions": [
+    "allow-vibelab-files",
+    "allow-vibelab-transfer",
+    "allow-vibelab-window"
+  ]
+}

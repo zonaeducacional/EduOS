@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-builtin-open-puter"
+description = "Enables the builtin_open_puter command without any pre-configured scope."
+commands.allow = ["builtin_open_puter"]
+
+[[permission]]
+identifier = "deny-builtin-open-puter"
+description = "Denies the builtin_open_puter command without any pre-configured scope."
+commands.deny = ["builtin_open_puter"]

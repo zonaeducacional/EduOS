@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-builtin-close-puter"
+description = "Enables the builtin_close_puter command without any pre-configured scope."
+commands.allow = ["builtin_close_puter"]
+
+[[permission]]
+identifier = "deny-builtin-close-puter"
+description = "Denies the builtin_close_puter command without any pre-configured scope."
+commands.deny = ["builtin_close_puter"]

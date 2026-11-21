@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shop-trust-file"
+description = "Enables the shop_trust_file command without any pre-configured scope."
+commands.allow = ["shop_trust_file"]
+
+[[permission]]
+identifier = "deny-shop-trust-file"
+description = "Denies the shop_trust_file command without any pre-configured scope."
+commands.deny = ["shop_trust_file"]

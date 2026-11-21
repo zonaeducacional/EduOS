@@ -1,0 +1,2458 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="whiteboard">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Quadro Magnético de Poesia — Poesia Imantada Offline</title>
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS E TEMAS VISUAIS (QUADRO BRANCO CLÁSSICO & QUADRO NOTURNO)
+       ========================================================================== */
+    :root {
+      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-poem: "Georgia", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    /* Tema 1: Quadro Branco Escolar Clássico */
+    [data-theme="whiteboard"] {
+      --wall-bg: #e7e5df;
+      --wall-pattern: radial-gradient(#d6d3cb 1px, transparent 1px);
+      --frame-gradient: linear-gradient(145deg, #e2e8f0 0%, #94a3b8 35%, #cbd5e1 65%, #64748b 100%);
+      --frame-border: #64748b;
+      --board-bg: #f8fafc;
+      --board-sheen: radial-gradient(circle at 25% 18%, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.7) 55%, rgba(226, 232, 240, 0.85) 100%);
+      --board-line: rgba(148, 163, 184, 0.34);
+      --board-slot: rgba(148, 163, 184, 0.14);
+      --tray-bg: #dde2e9;
+      --tray-border: #bcc5d1;
+      --surface-card: rgba(255, 255, 255, 0.94);
+      --surface-muted: #f1f5f9;
+      --border-subtle: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --magnet-bg: linear-gradient(180deg, #ffffff 0%, #f5f3eb 100%);
+      --magnet-text: #1e293b;
+      --magnet-border: #cbd5e1;
+      --magnet-edge: #94a3b8;
+      --magnet-shadow: 0 3px 6px rgba(15, 23, 42, 0.16), 0 1px 0 #94a3b8;
+      --magnet-shadow-drag: 0 16px 28px rgba(15, 23, 42, 0.28), 0 4px 8px rgba(15, 23, 42, 0.15);
+      --magnet-glow: none;
+    }
+
+    /* Tema 2: Quadro Escuro / Noturno com Ímãs Luminosos */
+    [data-theme="darkboard"] {
+      --wall-bg: #0b0f17;
+      --wall-pattern: radial-gradient(#1e293b 1px, transparent 1px);
+      --frame-gradient: linear-gradient(145deg, #475569 0%, #1e293b 40%, #334155 70%, #0f172a 100%);
+      --frame-border: #334155;
+      --board-bg: #111827;
+      --board-sheen: radial-gradient(circle at 25% 18%, rgba(30, 41, 59, 0.9) 0%, rgba(17, 24, 39, 0.95) 65%, rgba(9, 13, 22, 1) 100%);
+      --board-line: rgba(56, 189, 248, 0.2);
+      --board-slot: rgba(56, 189, 248, 0.08);
+      --tray-bg: #0f1623;
+      --tray-border: #263349;
+      --surface-card: rgba(22, 31, 48, 0.95);
+      --surface-muted: #1e293b;
+      --border-subtle: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --magnet-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      --magnet-text: #f8fafc;
+      --magnet-border: #38bdf8;
+      --magnet-edge: #0284c7;
+      --magnet-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 8px rgba(56, 189, 248, 0.22);
+      --magnet-shadow-drag: 0 18px 32px rgba(0, 0, 0, 0.7), 0 0 18px rgba(56, 189, 248, 0.55);
+      --magnet-glow: 0 0 10px rgba(56, 189, 248, 0.25);
+    }
+
+    /* ==========================================================================
+       BASE E LAYOUT RESPONSIVO
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      min-height: 100%;
+      width: 100%;
+      overflow-x: hidden;
+      font-family: var(--font-ui);
+      color: var(--text-primary);
+      background-color: var(--wall-bg);
+      background-image: var(--wall-pattern);
+      background-size: 22px 22px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #celebration-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 300;
+    }
+
+    .app-container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 12px 14px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ==========================================================================
+       CABEÇALHO E CONTROLES PRINCIPAIS
+       ========================================================================== */
+    .top-header {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.12rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .brand-sub {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      min-height: 38px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-muted);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--text-secondary);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #ffffff;
+      border-color: #059669;
+    }
+
+    .btn-admin {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: #ffffff;
+      border-color: #6d28d9;
+    }
+
+    /* ==========================================================================
+       BARRA DE SELEÇÃO DE POEMA, MODO E TELEMETRIA
+       ========================================================================== */
+    .toolbar-strip {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .poem-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .poem-select {
+      flex: 1;
+      min-width: 200px;
+      max-width: 360px;
+      padding: 8px 12px;
+      min-height: 38px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-muted);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mode-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 6px 11px;
+      border-radius: 9px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-tab.active {
+      background: var(--surface-card);
+      color: var(--text-primary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .telemetry-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .telemetry-pill {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Faixa de Dica Literária / Feedback */
+    .context-bar {
+      background: var(--surface-card);
+      border-left: 4px solid #0284c7;
+      border-top: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.84rem;
+    }
+
+    .context-text {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .context-text strong {
+      color: var(--text-primary);
+    }
+
+    .feedback-toast {
+      font-weight: 800;
+      font-size: 0.82rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(2, 132, 199, 0.12);
+      color: #0284c7;
+      transition: all 0.2s ease;
+    }
+
+    [data-theme="darkboard"] .feedback-toast {
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+    }
+
+    /* ==========================================================================
+       MOLDURA DE ALUMÍNIO ESCOVADO + QUADRO BRANCO MAGNÉTICO + CALHA INFERIOR
+       ========================================================================== */
+    .aluminum-frame {
+      background: var(--frame-gradient);
+      border: 2px solid var(--frame-border);
+      border-radius: 22px;
+      padding: 14px 14px 0 14px;
+      box-shadow:
+        0 24px 48px -12px rgba(15, 23, 42, 0.28),
+        inset 0 2px 3px rgba(255, 255, 255, 0.65);
+      position: relative;
+    }
+
+    /* Parafusos de canto na moldura de alumínio */
+    .corner-rivet {
+      position: absolute;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f8fafc, #64748b);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4);
+      z-index: 3;
+    }
+    .rivet-tl { top: 5px; left: 5px; }
+    .rivet-tr { top: 5px; right: 5px; }
+
+    .magnetic-board {
+      background-color: var(--board-bg);
+      background-image: var(--board-sheen);
+      border-radius: 12px;
+      border: 1px solid rgba(100, 116, 139, 0.45);
+      box-shadow: inset 0 3px 12px rgba(15, 23, 42, 0.14);
+      min-height: 310px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Controles Internos do Quadro */
+    .board-top-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--board-line);
+    }
+
+    .board-hint-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .board-mini-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .mini-btn:hover {
+      border-color: #0284c7;
+    }
+
+    .mini-btn.active {
+      background: rgba(2, 132, 199, 0.14);
+      border-color: #0284c7;
+      color: #0284c7;
+    }
+
+    [data-theme="darkboard"] .mini-btn.active {
+      color: #7dd3fc;
+      border-color: #38bdf8;
+    }
+
+    /* ==========================================================================
+       LINHAS DE VERSO (MODO DESAFIO DE RECONSTRUÇÃO)
+       ========================================================================== */
+    .verse-lines-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .verse-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1.5px dashed transparent;
+      border-bottom: 1.5px solid var(--board-line);
+      background: transparent;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .verse-row.active-target {
+      background: rgba(2, 132, 199, 0.05);
+      border-color: rgba(2, 132, 199, 0.35);
+    }
+
+    .verse-row.drag-over {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1.5px dashed #10b981;
+    }
+
+    .verse-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .verse-row.active-target .verse-number {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+    }
+
+    .verse-words-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 38px;
+    }
+
+    .slot-placeholder {
+      height: 34px;
+      min-width: 56px;
+      border-radius: 6px;
+      border: 1px dashed var(--board-line);
+      background: var(--board-slot);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       QUADRO LIVRE (MODO OFICINA AUTORAL - COORDENADAS X, Y LIVRES)
+       ========================================================================== */
+    .freestyle-canvas-area {
+      position: relative;
+      width: 100%;
+      height: 360px;
+      border-radius: 10px;
+      border: 1.5px dashed var(--board-line);
+      background-image: radial-gradient(var(--board-line) 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .freestyle-canvas-area.active {
+      display: block;
+    }
+
+    .freestyle-watermark {
+      position: absolute;
+      bottom: 10px;
+      right: 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       PEÇAS MAGNÉTICAS DE PALAVRAS (ÍMÃS TÁTEIS)
+       ========================================================================== */
+    .magnet-tile {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      min-height: 36px;
+      background: var(--magnet-bg);
+      color: var(--magnet-text);
+      border: 1px solid var(--magnet-border);
+      border-bottom-width: 3px;
+      border-bottom-color: var(--magnet-edge);
+      border-radius: 5px;
+      font-family: var(--font-poem);
+      font-size: 1.02rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      box-shadow: var(--magnet-shadow), var(--magnet-glow);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      position: relative;
+      transform: rotate(var(--tilt, 0deg));
+      transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease, border-color 0.2s ease;
+    }
+
+    .magnet-tile:hover:not(.locked) {
+      transform: rotate(0deg) translateY(-2px) scale(1.03);
+      z-index: 10;
+    }
+
+    .magnet-tile.dragging {
+      cursor: grabbing;
+      opacity: 0.45;
+      transform: scale(0.96);
+    }
+
+    /* Clone flutuante durante arraste por toque/mouse */
+    .magnet-ghost-drag {
+      position: fixed;
+      pointer-events: none;
+      z-index: 999;
+      transform: rotate(2deg) scale(1.1);
+      box-shadow: var(--magnet-shadow-drag) !important;
+      transition: none !important;
+    }
+
+    /* Estados de Verificação do Ímã */
+    .magnet-tile.locked {
+      border-color: #10b981;
+      border-bottom-color: #059669;
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+      color: #065f46;
+      cursor: default;
+      transform: rotate(0deg);
+    }
+
+    [data-theme="darkboard"] .magnet-tile.locked {
+      background: linear-gradient(180deg, #064e3b 0%, #022c22 100%);
+      color: #6ee7b7;
+      border-color: #10b981;
+    }
+
+    .magnet-tile.locked::after {
+      content: "✓";
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 900;
+      margin-left: 5px;
+      color: #059669;
+    }
+
+    [data-theme="darkboard"] .magnet-tile.locked::after {
+      color: #34d399;
+    }
+
+    .magnet-tile.near-match {
+      border-color: #f59e0b;
+      border-bottom-color: #d97706;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+    }
+
+    .magnet-tile.wrong-shake {
+      border-color: #ef4444;
+      border-bottom-color: #dc2626;
+      animation: magnetShake 0.42s ease;
+    }
+
+    @keyframes magnetShake {
+      0%, 100% { transform: translateX(0) rotate(var(--tilt, 0deg)); }
+      20% { transform: translateX(-6px) rotate(-3deg); }
+      40% { transform: translateX(6px) rotate(3deg); }
+      60% { transform: translateX(-4px) rotate(-2deg); }
+      80% { transform: translateX(4px) rotate(2deg); }
+    }
+
+    /* Ímãs posicionados livremente no Quadro Livre */
+    .magnet-tile.freestyle-item {
+      position: absolute;
+      margin: 0;
+    }
+
+    /* ==========================================================================
+       CALHA INFERIOR DE ALUMÍNIO (MARCADORES & APAGADOR) + BANDEJA DE ÍMÃS
+       ========================================================================== */
+    .aluminum-ledge {
+      height: 22px;
+      margin: 10px -14px 0 -14px;
+      background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 55%, #475569 100%);
+      border-top: 1px solid #f8fafc;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 28px;
+      gap: 14px;
+      position: relative;
+    }
+
+    /* Marcador de quadro branco decorativo */
+    .board-marker {
+      width: 68px;
+      height: 9px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
+      position: relative;
+      top: -4px;
+      display: flex;
+      align-items: center;
+    }
+
+    .board-marker::before {
+      content: "";
+      width: 18px;
+      height: 9px;
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+      background: #0284c7;
+    }
+
+    .board-marker.red::before {
+      background: #e11d48;
+    }
+
+    /* Apagador decorativo */
+    .board-eraser {
+      width: 54px;
+      height: 13px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #334155 0%, #0f172a 75%, #64748b 76%, #475569 100%);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      position: relative;
+      top: -5px;
+    }
+
+    /* Bandeja de Ímãs Embaralhados */
+    .magnet-tray-section {
+      background: var(--tray-bg);
+      border: 2px solid var(--tray-border);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .tray-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tray-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tray-pool {
+      min-height: 78px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 9px;
+      padding: 6px;
+      border-radius: 10px;
+      transition: background-color 0.2s ease;
+    }
+
+    .tray-pool.drag-over {
+      background: rgba(2, 132, 199, 0.12);
+      outline: 2px dashed #0284c7;
+    }
+
+    /* ==========================================================================
+       MODAIS (ÁREA DO PROFESSOR & VITÓRIA LITERÁRIA)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.7);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 200;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 22px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 25px 55px -12px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-muted);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .form-textarea {
+      font-family: var(--font-poem);
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .radio-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 6px 0;
+    }
+
+    .radio-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .admin-poem-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .admin-poem-item {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .admin-poem-info h4 {
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .admin-poem-info p {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    .admin-item-btns {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Card de Vitória Literária */
+    .poem-showcase {
+      background: var(--surface-muted);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid #10b981;
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      font-family: var(--font-poem);
+      font-size: 1.08rem;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .stars-display {
+      font-size: 2rem;
+      letter-spacing: 4px;
+      text-align: center;
+    }
+
+    /* ==========================================================================
+       RESPONSIVIDADE MOBILE / TABLET
+       ========================================================================== */
+    @media (max-width: 680px) {
+      .app-container {
+        padding: 8px 8px 18px;
+        gap: 8px;
+      }
+
+      .btn-label-hide {
+        display: none;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .aluminum-frame {
+        padding: 10px 10px 0 10px;
+        border-radius: 16px;
+      }
+
+      .aluminum-ledge {
+        margin: 8px -10px 0 -10px;
+      }
+
+      .magnetic-board {
+        padding: 12px 10px;
+        min-height: 260px;
+      }
+
+      .magnet-tile {
+        padding: 5px 9px;
+        font-size: 0.94rem;
+        min-height: 33px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas para chuva de pétalas/confetes na vitória -->
+  <canvas id="celebration-canvas"></canvas>
+
+  <div class="app-container">
+    <!-- Cabeçalho Principal -->
+    <header class="top-header">
+      <div class="brand-box">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="14" rx="2"/>
+            <path d="M7 9h4"/><path d="M13 9h4"/><path d="M7 13h6"/>
+            <path d="M2 18h20"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Quadro Magnético de Poesia</h1>
+          <p class="brand-sub">Poesia Imantada Interativa • 100% Offline</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="btn" id="btn-theme" title="Alternar tema do quadro">
+          <span id="theme-icon">🌙</span><span class="btn-label-hide" id="theme-label">Quadro Noturno</span>
+        </button>
+
+        <button type="button" class="btn" id="btn-sound" title="Ativar ou silenciar som magnético">
+          <span id="sound-icon">🔊</span>
+        </button>
+
+        <button type="button" class="btn btn-admin" id="btn-open-admin" title="Gerenciar poemas e importar/exportar acervo">
+          <span>📚</span><span>Área do Professor</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Barra de Seleção de Poema, Modo de Jogo e Cronômetro -->
+    <section class="toolbar-strip">
+      <div class="poem-selector-group">
+        <select id="poem-select" class="poem-select" aria-label="Escolher poema da biblioteca"></select>
+        <button type="button" class="btn" id="btn-random-poem" title="Sortear um poema aleatório">
+          <span>🎲</span><span class="btn-label-hide">Sortear</span>
+        </button>
+      </div>
+
+      <div class="mode-switch" role="group" aria-label="Modo de uso do quadro">
+        <button type="button" class="mode-tab active" data-game-mode="challenge">🧩 Desafio de Reconstrução</button>
+        <button type="button" class="mode-tab" data-game-mode="freestyle">🎨 Oficina Livre</button>
+      </div>
+
+      <div class="telemetry-pills" id="challenge-telemetry">
+        <span class="telemetry-pill" title="Tempo decorrido">⏱️ <span id="timer-display">00:00</span></span>
+        <span class="telemetry-pill" title="Conferências realizadas">🎯 <span id="attempts-display">0</span></span>
+      </div>
+    </section>
+
+    <!-- Faixa de Contexto Literário e Feedback Instantâneo -->
+    <div class="context-bar">
+      <div class="context-text" id="poem-context-bar">
+        <strong>Dica Literária:</strong> Carregando poema...
+      </div>
+      <div class="feedback-toast" id="feedback-toast">
+        Toque ou arraste os ímãs para montar os versos!
+      </div>
+    </div>
+
+    <!-- Quadro Branco Escolar com Moldura de Alumínio Escovado -->
+    <main class="aluminum-frame">
+      <span class="corner-rivet rivet-tl" aria-hidden="true"></span>
+      <span class="corner-rivet rivet-tr" aria-hidden="true"></span>
+
+      <div class="magnetic-board" id="magnetic-board">
+        <!-- Controles Superiores Internos do Quadro -->
+        <div class="board-top-controls">
+          <div class="board-hint-label" id="board-instruction">
+            <span>📌 Linha ativa: <strong id="active-verse-label">Verso 1</strong> (clique em um ímã na bandeja para enviá-lo)</span>
+          </div>
+
+          <div class="board-mini-actions" id="challenge-board-btns">
+            <button type="button" class="mini-btn active" id="btn-toggle-slots" title="Mostrar ou ocultar guias de espaços por verso">
+              📏 Guias de Espaço
+            </button>
+            <button type="button" class="mini-btn" id="btn-hint-verse" title="Revelar a primeira palavra de um verso incompleto">
+              💡 Dica do Verso
+            </button>
+            <button type="button" class="mini-btn" id="btn-clear-board" title="Devolver ímãs destravados para a bandeja">
+              🧹 Limpar Quadro
+            </button>
+          </div>
+
+          <div class="board-mini-actions" id="freestyle-board-btns" style="display: none;">
+            <button type="button" class="mini-btn" id="btn-load-all-words" title="Carregar palavras de todos os poemas na bandeja">
+              🌈 Misturar Todos os Poemas
+            </button>
+            <button type="button" class="mini-btn" id="btn-save-artwork" title="Exportar imagem PNG da sua poesia visual">
+              📸 Salvar Imagem da Obra
+            </button>
+            <button type="button" class="mini-btn" id="btn-clear-freestyle" title="Devolver todos os ímãs para a bandeja">
+              🧹 Limpar Quadro
+            </button>
+          </div>
+        </div>
+
+        <!-- Área 1: Linhas de Verso (Desafio de Reconstrução) -->
+        <div class="verse-lines-container" id="verse-lines-container"></div>
+
+        <!-- Área 2: Quadro Livre X/Y (Oficina Autoral) -->
+        <div class="freestyle-canvas-area" id="freestyle-canvas-area">
+          <span class="freestyle-watermark">Quadro Magnético de Poesia • Criação Livre</span>
+        </div>
+      </div>
+
+      <!-- Calha Inferior de Alumínio com Marcadores e Apagador -->
+      <div class="aluminum-ledge" aria-hidden="true">
+        <div class="board-marker"></div>
+        <div class="board-marker red"></div>
+        <div class="board-eraser"></div>
+      </div>
+    </main>
+
+    <!-- Bandeja Inferior de Ímãs Embaralhados -->
+    <section class="magnet-tray-section" aria-label="Bandeja de ímãs disponíveis">
+      <div class="tray-header">
+        <div class="tray-title">
+          <span>🧲 Bandeja de Ímãs (<span id="tray-count">0</span> restantes)</span>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="btn" id="btn-shuffle-tray">
+            <span>🔀</span><span>Embaralhar Bandeja</span>
+          </button>
+          <button type="button" class="btn btn-success" id="btn-check-poem">
+            <span>✅</span><span>Conferir Poema</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tray-pool" id="tray-pool"></div>
+    </section>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: ÁREA DO PROFESSOR / ADMIN (100% OFFLINE E PERSISTENTE)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="admin-modal-title">📚 Área do Professor — Acervo de Poemas</h2>
+        <button type="button" class="btn" id="btn-close-admin" aria-label="Fechar">✕</button>
+      </div>
+
+      <form id="poem-form" class="form-grid">
+        <input type="hidden" id="edit-poem-id" value="">
+
+        <div class="form-group">
+          <label class="form-label" for="input-poem-title">Título do Poema</label>
+          <input type="text" id="input-poem-title" class="form-input" placeholder="Ex: Canção do Exílio" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-poem-author">Autor(a) e Ano</label>
+          <input type="text" id="input-poem-author" class="form-input" placeholder="Ex: Gonçalves Dias (1843)" required>
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label" for="input-poem-context">Contexto Literário / Dica para os Alunos</label>
+          <input type="text" id="input-poem-context" class="form-input" placeholder="Ex: Observe as rimas alternadas e a saudade da terra natal.">
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label" for="input-poem-text">Texto do Poema (cada quebra de linha gera um verso no quadro)</label>
+          <textarea id="input-poem-text" class="form-textarea" placeholder="Minha terra tem palmeiras,&#10;Onde canta o Sabiá;&#10;As aves, que aqui gorjeiam,&#10;Não gorjeiam como lá." required></textarea>
+        </div>
+
+        <div class="form-group full">
+          <span class="form-label">Tratamento da Pontuação nos Ímãs</span>
+          <div class="radio-row">
+            <label class="radio-label">
+              <input type="radio" name="punct-mode" value="attached" checked>
+              Manter pontuação colada na palavra (ex: <em>pedra.</em>)
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="punct-mode" value="separate">
+              Separar pontuação como ímãs próprios (ex: <em>pedra</em> e <em>.</em>)
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group full" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary" id="btn-save-poem" style="flex: 1;">
+            💾 Salvar Poema no Acervo
+          </button>
+          <button type="button" class="btn" id="btn-cancel-edit" style="display: none;">
+            Cancelar Edição
+          </button>
+        </div>
+      </form>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+          <span class="form-label">Poemas Cadastrados (<span id="admin-count">0</span>)</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="mini-btn" id="btn-export-json">📤 Exportar Acervo (.json)</button>
+            <label class="mini-btn" style="cursor: pointer;">
+              📥 Importar Acervo (.json)
+              <input type="file" id="input-import-json" accept=".json,application/json" style="display: none;">
+            </label>
+            <button type="button" class="mini-btn" id="btn-restore-defaults">🔄 Restaurar Padrões</button>
+          </div>
+        </div>
+
+        <div class="admin-poem-list" id="admin-poem-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: VITÓRIA E LEITURA LITERÁRIA DO POEMA RECONSTRUÍDO
+       ========================================================================== -->
+  <div class="modal-backdrop" id="victory-modal" role="dialog" aria-modal="true" aria-labelledby="victory-title">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="victory-title">🎉 Poema Reconstruído com Sucesso!</h2>
+        <button type="button" class="btn" id="btn-close-victory" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="stars-display" id="victory-stars">⭐⭐⭐</div>
+
+      <div style="text-align: center; font-size: 0.88rem; color: var(--text-secondary); font-weight: 700;" id="victory-metrics">
+        Tempo: 00:42 • Conferências: 1
+      </div>
+
+      <div class="poem-showcase" id="victory-poem-display"></div>
+
+      <div style="font-size: 0.84rem; color: var(--text-secondary); background: var(--surface-muted); padding: 10px 12px; border-radius: 10px;" id="victory-context-note"></div>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn" id="btn-victory-freestyle" style="flex: 1;">
+          🎨 Criar na Oficina Livre
+        </button>
+        <button type="button" class="btn btn-primary" id="btn-victory-next" style="flex: 1;">
+          ➡️ Próximo Poema
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ==========================================================================
+     * QUADRO MAGNÉTICO DE POESIA — APLICAÇÃO COMPLETA 100% OFFLINE
+     * ==========================================================================
+     */
+    (function () {
+      "use strict";
+
+      const STORAGE_KEY_POEMS = "quadro_magnetico_poemas_v1";
+
+      /* ========================================================================
+         ACERVO PRÉ-CARREGADO (6 POEMAS BRASILEIROS E CLÁSSICOS)
+         ======================================================================== */
+      const DEFAULT_POEMS = [
+        {
+          id: "drummond-caminho",
+          title: "No Meio do Caminho (trecho)",
+          author: "Carlos Drummond de Andrade (1928)",
+          context: "Poema modernista célebre pelo uso intencional da repetição como ritmo e insistência.",
+          punctuationMode: "attached",
+          text: "No meio do caminho tinha uma pedra\ntinha uma pedra no meio do caminho\ntinha uma pedra\nno meio do caminho tinha uma pedra."
+        },
+        {
+          id: "cecilia-motivo",
+          title: "Motivo (1ª estrofe)",
+          author: "Cecília Meireles (1939)",
+          context: "Abertura do livro 'Viagem', marcada pela musicalidade e pelas rimas entre 'instante/distante' e 'nada/estrada'.",
+          punctuationMode: "attached",
+          text: "Eu canto porque o instante existe\ne a minha vida está completa.\nNão sou alegre nem sou triste:\nsou poeta."
+        },
+        {
+          id: "cecilia-ou-isto",
+          title: "Ou Isto ou Aquilo (estrofes)",
+          author: "Cecília Meireles (1964)",
+          context: "Brinca com antíteses (chuva/sol, luva/anel) e escolhas do cotidiano com ritmo leve.",
+          punctuationMode: "attached",
+          text: "Ou se tem chuva e não se tem sol,\nou se tem sol e não se tem chuva!\nOu se calça a luva e não se põe o anel,\nou se põe o anel e não se calça a luva!"
+        },
+        {
+          id: "goncalves-exilio",
+          title: "Canção do Exílio (1ª estrofe)",
+          author: "Gonçalves Dias (1843)",
+          context: "Clássico do Romantismo brasileiro escrito em Coimbra, exaltando a natureza e a saudade do Brasil.",
+          punctuationMode: "attached",
+          text: "Minha terra tem palmeiras,\nOnde canta o Sabiá;\nAs aves, que aqui gorjeiam,\nNão gorjeiam como lá."
+        },
+        {
+          id: "vinicius-fidelidade",
+          title: "Soneto de Fidelidade (1º quarteto)",
+          author: "Vinicius de Moraes (1939)",
+          context: "Observe a sonoridade (aliteração do som 't' e 'd') e as rimas cruzadas (ABBA).",
+          punctuationMode: "attached",
+          text: "De tudo, ao meu amor serei atento\nAntes, e com tal zelo, e sempre, e tanto\nQue mesmo em face do maior encanto\nDele se encante mais meu pensamento."
+        },
+        {
+          id: "cordel-palavra",
+          title: "Versos de Cordel (A Palavra)",
+          author: "Literatura de Cordel Educativa",
+          context: "Sextilha nordestina tradicional: seis versos com rimas nos versos pares (2º, 4º e 6º).",
+          punctuationMode: "attached",
+          text: "A palavra é semente\nQue germina no papel,\nTransformando pensamento\nEm história e em cordel,\nQuem aprende a ler o mundo\nToca as estrelas do céu."
+        }
+      ];
+
+      /* ========================================================================
+         ESTADO GLOBAL DA APLICAÇÃO
+         ======================================================================== */
+      const state = {
+        poems: [],
+        currentPoemId: null,
+        gameMode: "challenge",     // "challenge" | "freestyle"
+        theme: "whiteboard",       // "whiteboard" | "darkboard"
+        soundEnabled: true,
+        showSlots: true,
+        activeVerseIndex: 0,
+        targetVerses: [],          // Array de arrays de tokens corretos por verso
+        boardVerses: [],           // Array de arrays de objetos ímã colocados em cada verso
+        trayMagnets: [],           // Ímãs disponíveis na bandeja
+        freestyleMagnets: [],      // Ímãs posicionados livremente { id, text, x, y, tilt }
+        timerSeconds: 0,
+        timerInterval: null,
+        attempts: 0,
+        isSolved: false
+      };
+
+      /* Referências Principais do DOM */
+      const poemSelect = document.getElementById("poem-select");
+      const verseLinesContainer = document.getElementById("verse-lines-container");
+      const freestyleCanvasArea = document.getElementById("freestyle-canvas-area");
+      const trayPool = document.getElementById("tray-pool");
+      const feedbackToast = document.getElementById("feedback-toast");
+      const adminModal = document.getElementById("admin-modal");
+      const victoryModal = document.getElementById("victory-modal");
+
+      /* ========================================================================
+         SINTETIZADOR DE ÁUDIO MAGNÉTICO (WEB AUDIO API - 100% OFFLINE)
+         ======================================================================== */
+      let audioCtx = null;
+
+      function getAudioContext() {
+        if (!audioCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (Ctx) audioCtx = new Ctx();
+        }
+        if (audioCtx && audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function playSound(type) {
+        if (!state.soundEnabled) return;
+        try {
+          const ctx = getAudioContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          if (type === "pickup") {
+            /* Som leve de levantar peça */
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(280, now);
+            osc.frequency.exponentialRampToValueAtTime(420, now + 0.045);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.055);
+          } else if (type === "clack") {
+            /* Estalo mecânico magnético ('clack' ao encostar na lousa metálica) */
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(620, now);
+            osc.frequency.exponentialRampToValueAtTime(140, now + 0.055);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            osc.start(now);
+            osc.stop(now + 0.065);
+          } else if (type === "lock") {
+            /* Som cristalino de acerto travado */
+            [587.33, 880].forEach((freq, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(freq, now + i * 0.06);
+              gain.gain.setValueAtTime(0.14, now + i * 0.06);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.18);
+              osc.start(now + i * 0.06);
+              osc.stop(now + i * 0.06 + 0.2);
+            });
+          } else if (type === "error") {
+            /* Som grave suave de erro */
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(175, now);
+            osc.frequency.linearRampToValueAtTime(135, now + 0.14);
+            gain.gain.setValueAtTime(0.09, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+            osc.start(now);
+            osc.stop(now + 0.17);
+          } else if (type === "victory") {
+            /* Acorde poético celebratório */
+            [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((freq, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.type = "triangle";
+              osc.frequency.setValueAtTime(freq, now + i * 0.085);
+              gain.gain.setValueAtTime(0.15, now + i * 0.085);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.085 + 0.32);
+              osc.start(now + i * 0.085);
+              osc.stop(now + i * 0.085 + 0.34);
+            });
+          }
+        } catch (err) {
+          /* Ignora bloqueios de áudio */
+        }
+      }
+
+      /* ========================================================================
+         PERSISTÊNCIA DO ACERVO (localStorage + JSON)
+         ======================================================================== */
+      function loadPoemsFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_POEMS);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              state.poems = parsed;
+              return;
+            }
+          }
+        } catch (e) {
+          /* Fallback para acervo padrão */
+        }
+        state.poems = JSON.parse(JSON.stringify(DEFAULT_POEMS));
+        savePoemsToStorage();
+      }
+
+      function savePoemsToStorage() {
+        try {
+          localStorage.setItem(STORAGE_KEY_POEMS, JSON.stringify(state.poems));
+        } catch (e) {
+          /* Ignora se storage estiver cheio */
+        }
+      }
+
+      /* ========================================================================
+         TOKENIZAÇÃO DE POEMAS EM ÍMÃS
+         ======================================================================== */
+      function tokenizePoemText(text, punctuationMode = "attached") {
+        const lines = text
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0);
+
+        return lines.map((line) => {
+          if (punctuationMode === "separate") {
+            /* Separa pontuações finais/intermediárias em ímãs próprios */
+            const matches = line.match(/[\wÀ-ÖØ-öø-ÿ'-]+|[.,;:!?—–…()"«»]/g);
+            return matches || line.split(/\s+/);
+          }
+          /* Mantém pontuação colada na palavra */
+          return line.split(/\s+/).filter(Boolean);
+        });
+      }
+
+      function randomTilt() {
+        return Number(((Math.random() * 5.6) - 2.8).toFixed(2));
+      }
+
+      function shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      /* ========================================================================
+         CRONÔMETRO E FEEDBACK
+         ======================================================================== */
+      function startTimer() {
+        stopTimer();
+        state.timerSeconds = 0;
+        updateTimerUI();
+        state.timerInterval = setInterval(() => {
+          if (!state.isSolved && state.gameMode === "challenge") {
+            state.timerSeconds++;
+            updateTimerUI();
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (state.timerInterval) {
+          clearInterval(state.timerInterval);
+          state.timerInterval = null;
+        }
+      }
+
+      function formatTime(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, "0");
+        const s = String(sec % 60).padStart(2, "0");
+        return `${m}:${s}`;
+      }
+
+      function updateTimerUI() {
+        document.getElementById("timer-display").textContent = formatTime(state.timerSeconds);
+      }
+
+      function setFeedback(msg, tone = "info") {
+        feedbackToast.textContent = msg;
+        if (tone === "success") {
+          feedbackToast.style.background = "rgba(16, 185, 129, 0.18)";
+          feedbackToast.style.color = "#059669";
+        } else if (tone === "warn") {
+          feedbackToast.style.background = "rgba(245, 158, 11, 0.18)";
+          feedbackToast.style.color = "#d97706";
+        } else {
+          feedbackToast.style.background = "";
+          feedbackToast.style.color = "";
+        }
+      }
+
+      /* ========================================================================
+         CARREGAMENTO DE POEMA NO QUADRO
+         ======================================================================== */
+      function populatePoemSelect() {
+        poemSelect.innerHTML = "";
+        state.poems.forEach((p) => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = `${p.title} — ${p.author}`;
+          poemSelect.appendChild(opt);
+        });
+        if (state.currentPoemId) {
+          poemSelect.value = state.currentPoemId;
+        }
+      }
+
+      function loadPoem(poemId) {
+        const poem = state.poems.find((p) => p.id === poemId) || state.poems[0];
+        if (!poem) return;
+
+        state.currentPoemId = poem.id;
+        poemSelect.value = poem.id;
+        state.targetVerses = tokenizePoemText(poem.text, poem.punctuationMode);
+        state.boardVerses = state.targetVerses.map(() => []);
+        state.freestyleMagnets = [];
+        state.activeVerseIndex = 0;
+        state.attempts = 0;
+        state.isSolved = false;
+
+        document.getElementById("attempts-display").textContent = "0";
+        document.getElementById("poem-context-bar").innerHTML =
+          `<strong>${poem.title}</strong> (${poem.author}) • <span>${poem.context || "Organize os versos na ordem original."}</span>`;
+
+        /* Cria um ímã único para cada palavra do poema e embaralha na bandeja */
+        let uid = 1;
+        const allTiles = [];
+        state.targetVerses.forEach((verseTokens, vIdx) => {
+          verseTokens.forEach((word, wIdx) => {
+            allTiles.push({
+              id: `mag-${uid++}`,
+              text: word,
+              origVerse: vIdx,
+              origIndex: wIdx,
+              tilt: randomTilt(),
+              status: "neutral" // "neutral" | "locked" | "near" | "wrong"
+            });
+          });
+        });
+
+        state.trayMagnets = shuffleArray(allTiles);
+        stopCelebration();
+        victoryModal.classList.remove("open");
+
+        if (state.gameMode === "challenge") {
+          startTimer();
+          setFeedback("Clique ou arraste os ímãs para reconstruir os versos!");
+        } else {
+          stopTimer();
+          setFeedback("Arraste os ímãs livremente pelo quadro para criar sua poesia!");
+        }
+
+        renderAll();
+      }
+
+      /* ========================================================================
+         RENDERIZAÇÃO DO QUADRO E DA BANDEJA
+         ======================================================================== */
+      function renderAll() {
+        document.getElementById("tray-count").textContent = state.trayMagnets.length;
+
+        if (state.gameMode === "challenge") {
+          verseLinesContainer.style.display = "flex";
+          freestyleCanvasArea.classList.remove("active");
+          document.getElementById("challenge-board-btns").style.display = "flex";
+          document.getElementById("freestyle-board-btns").style.display = "none";
+          document.getElementById("challenge-telemetry").style.display = "flex";
+          document.getElementById("btn-check-poem").style.display = "inline-flex";
+          document.getElementById("board-instruction").innerHTML =
+            `<span>📌 Linha ativa: <strong id="active-verse-label">Verso ${state.activeVerseIndex + 1}</strong> (toque em um ímã na bandeja para enviá-lo)</span>`;
+          renderVerseLines();
+        } else {
+          verseLinesContainer.style.display = "none";
+          freestyleCanvasArea.classList.add("active");
+          document.getElementById("challenge-board-btns").style.display = "none";
+          document.getElementById("freestyle-board-btns").style.display = "flex";
+          document.getElementById("challenge-telemetry").style.display = "none";
+          document.getElementById("btn-check-poem").style.display = "none";
+          document.getElementById("board-instruction").innerHTML =
+            `<span>🎨 <strong>Oficina Livre:</strong> Arraste as palavras para qualquer posição do quadro</span>`;
+          renderFreestyleBoard();
+        }
+
+        renderTray();
+      }
+
+      function renderVerseLines() {
+        verseLinesContainer.innerHTML = "";
+
+        state.targetVerses.forEach((targetTokens, vIdx) => {
+          const row = document.createElement("div");
+          row.className = `verse-row${state.activeVerseIndex === vIdx ? " active-target" : ""}`;
+          row.dataset.verseIndex = vIdx;
+
+          row.addEventListener("click", (e) => {
+            if (e.target.closest(".magnet-tile")) return;
+            state.activeVerseIndex = vIdx;
+            renderAll();
+          });
+
+          const numBadge = document.createElement("div");
+          numBadge.className = "verse-number";
+          numBadge.textContent = vIdx + 1;
+          row.appendChild(numBadge);
+
+          const wordsArea = document.createElement("div");
+          wordsArea.className = "verse-words-area";
+
+          const placed = state.boardVerses[vIdx];
+          placed.forEach((mag, idxInVerse) => {
+            const tileEl = createMagnetElement(mag, "board", vIdx, idxInVerse);
+            wordsArea.appendChild(tileEl);
+          });
+
+          /* Guias de Espaços (Slots) opcionais para auxiliar estudantes */
+          if (state.showSlots) {
+            const missingSlots = Math.max(0, targetTokens.length - placed.length);
+            for (let s = 0; s < missingSlots; s++) {
+              const slot = document.createElement("div");
+              slot.className = "slot-placeholder";
+              slot.textContent = `${placed.length + s + 1}`;
+              wordsArea.appendChild(slot);
+            }
+          }
+
+          row.appendChild(wordsArea);
+          verseLinesContainer.appendChild(row);
+        });
+      }
+
+      function renderFreestyleBoard() {
+        /* Mantém apenas a marca d'água e recria os ímãs livres */
+        freestyleCanvasArea.innerHTML = `<span class="freestyle-watermark">Quadro Magnético de Poesia • Criação Livre</span>`;
+        state.freestyleMagnets.forEach((mag) => {
+          const tileEl = createMagnetElement(mag, "freestyle");
+          tileEl.classList.add("freestyle-item");
+          tileEl.style.left = `${mag.x}px`;
+          tileEl.style.top = `${mag.y}px`;
+          freestyleCanvasArea.appendChild(tileEl);
+        });
+      }
+
+      function renderTray() {
+        trayPool.innerHTML = "";
+        state.trayMagnets.forEach((mag) => {
+          const tileEl = createMagnetElement(mag, "tray");
+          trayPool.appendChild(tileEl);
+        });
+      }
+
+      /* ========================================================================
+         CRIAÇÃO DE PEÇA MAGNÉTICA COM INTERAÇÃO UNIFICADA (POINTER EVENTS)
+         ======================================================================== */
+      function createMagnetElement(mag, location, verseIdx = -1, indexInVerse = -1) {
+        const el = document.createElement("div");
+        el.className = "magnet-tile";
+        if (mag.status === "locked") el.classList.add("locked");
+        if (mag.status === "near") el.classList.add("near-match");
+        if (mag.status === "wrong") el.classList.add("wrong-shake");
+
+        el.style.setProperty("--tilt", `${mag.tilt}deg`);
+        el.textContent = mag.text;
+        el.dataset.magId = mag.id;
+
+        if (mag.status === "locked") {
+          return el;
+        }
+
+        /* Pointer Events suporta Mouse, Touch (Celular/Tablet) e Caneta Digital */
+        el.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0 && e.pointerType === "mouse") return;
+          e.preventDefault();
+          initiateMagnetDrag(e, el, mag, location, verseIdx, indexInVerse);
+        });
+
+        return el;
+      }
+
+      function initiateMagnetDrag(startEvent, sourceEl, mag, originLocation, originVerseIdx, originIndexInVerse) {
+        const startX = startEvent.clientX;
+        const startY = startEvent.clientY;
+        const rect = sourceEl.getBoundingClientRect();
+        const offsetX = startX - rect.left;
+        const offsetY = startY - rect.top;
+
+        let hasMoved = false;
+        let ghostEl = null;
+
+        function onPointerMove(moveEvent) {
+          const dx = moveEvent.clientX - startX;
+          const dy = moveEvent.clientY - startY;
+
+          if (!hasMoved && Math.hypot(dx, dy) > 6) {
+            hasMoved = true;
+            playSound("pickup");
+            sourceEl.classList.add("dragging");
+
+            ghostEl = sourceEl.cloneNode(true);
+            ghostEl.classList.remove("dragging");
+            ghostEl.classList.add("magnet-ghost-drag");
+            ghostEl.style.width = `${rect.width}px`;
+            document.body.appendChild(ghostEl);
+          }
+
+          if (hasMoved && ghostEl) {
+            ghostEl.style.left = `${moveEvent.clientX - offsetX}px`;
+            ghostEl.style.top = `${moveEvent.clientY - offsetY}px`;
+            highlightDropTarget(moveEvent.clientX, moveEvent.clientY);
+          }
+        }
+
+        function onPointerUp(upEvent) {
+          window.removeEventListener("pointermove", onPointerMove);
+          window.removeEventListener("pointerup", onPointerUp);
+          clearDropHighlights();
+
+          if (ghostEl) {
+            ghostEl.remove();
+            ghostEl = null;
+          }
+          sourceEl.classList.remove("dragging");
+
+          /* Se não arrastou (clique/toque rápido): envia da bandeja para a linha ativa ou devolve do quadro */
+          if (!hasMoved) {
+            handleQuickTap(mag, originLocation, originVerseIdx, originIndexInVerse);
+            return;
+          }
+
+          /* Caso contrário, resolve o local onde o ímã foi solto */
+          handleMagnetDrop(
+            upEvent.clientX,
+            upEvent.clientY,
+            upEvent.clientX - offsetX,
+            upEvent.clientY - offsetY,
+            mag,
+            originLocation,
+            originVerseIdx,
+            originIndexInVerse
+          );
+        }
+
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+      }
+
+      function highlightDropTarget(clientX, clientY) {
+        clearDropHighlights();
+        const elemBelow = document.elementFromPoint(clientX, clientY);
+        if (!elemBelow) return;
+
+        const row = elemBelow.closest(".verse-row");
+        if (row && state.gameMode === "challenge") {
+          row.classList.add("drag-over");
+          return;
+        }
+
+        const tray = elemBelow.closest("#tray-pool");
+        if (tray) {
+          tray.classList.add("drag-over");
+        }
+      }
+
+      function clearDropHighlights() {
+        document.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over"));
+      }
+
+      function handleQuickTap(mag, originLocation, originVerseIdx, originIndexInVerse) {
+        mag.status = "neutral";
+
+        if (state.gameMode === "freestyle") {
+          if (originLocation === "tray") {
+            state.trayMagnets = state.trayMagnets.filter((m) => m.id !== mag.id);
+            const boardRect = freestyleCanvasArea.getBoundingClientRect();
+            const randX = 20 + Math.random() * Math.max(60, boardRect.width - 140);
+            const randY = 20 + Math.random() * Math.max(60, boardRect.height - 70);
+            state.freestyleMagnets.push({ ...mag, x: randX, y: randY });
+            playSound("clack");
+          } else if (originLocation === "freestyle") {
+            state.freestyleMagnets = state.freestyleMagnets.filter((m) => m.id !== mag.id);
+            state.trayMagnets.push(mag);
+            playSound("pickup");
+          }
+          renderAll();
+          return;
+        }
+
+        /* Modo Desafio: clique rápido na bandeja envia para o verso ativo; clique no quadro devolve para bandeja */
+        if (originLocation === "tray") {
+          state.trayMagnets = state.trayMagnets.filter((m) => m.id !== mag.id);
+          state.boardVerses[state.activeVerseIndex].push(mag);
+          playSound("clack");
+
+          /* Avança automaticamente a linha ativa se o verso atingiu a quantidade esperada de palavras */
+          const targetLen = state.targetVerses[state.activeVerseIndex].length;
+          if (
+            state.boardVerses[state.activeVerseIndex].length >= targetLen &&
+            state.activeVerseIndex < state.targetVerses.length - 1
+          ) {
+            state.activeVerseIndex++;
+          }
+        } else if (originLocation === "board") {
+          state.boardVerses[originVerseIdx].splice(originIndexInVerse, 1);
+          state.trayMagnets.push(mag);
+          playSound("pickup");
+        }
+
+        renderAll();
+      }
+
+      function handleMagnetDrop(clientX, clientY, leftPos, topPos, mag, originLocation, originVerseIdx, originIndexInVerse) {
+        mag.status = "neutral";
+        const elemBelow = document.elementFromPoint(clientX, clientY);
+
+        /* 1. Modo Oficina Livre (Posicionamento X, Y livre no quadro ou retorno à bandeja) */
+        if (state.gameMode === "freestyle") {
+          const canvasRect = freestyleCanvasArea.getBoundingClientRect();
+          const insideCanvas =
+            clientX >= canvasRect.left &&
+            clientX <= canvasRect.right &&
+            clientY >= canvasRect.top &&
+            clientY <= canvasRect.bottom;
+
+          if (insideCanvas) {
+            const relX = Math.max(6, Math.min(canvasRect.width - 80, leftPos - canvasRect.left));
+            const relY = Math.max(6, Math.min(canvasRect.height - 42, topPos - canvasRect.top));
+
+            if (originLocation === "tray") {
+              state.trayMagnets = state.trayMagnets.filter((m) => m.id !== mag.id);
+              state.freestyleMagnets.push({ ...mag, x: relX, y: relY });
+            } else {
+              const existing = state.freestyleMagnets.find((m) => m.id === mag.id);
+              if (existing) {
+                existing.x = relX;
+                existing.y = relY;
+              }
+            }
+            playSound("clack");
+          } else if (elemBelow && elemBelow.closest(".magnet-tray-section")) {
+            if (originLocation === "freestyle") {
+              state.freestyleMagnets = state.freestyleMagnets.filter((m) => m.id !== mag.id);
+              state.trayMagnets.push(mag);
+              playSound("pickup");
+            }
+          }
+          renderAll();
+          return;
+        }
+
+        /* 2. Modo Desafio de Reconstrução */
+        const targetRow = elemBelow ? elemBelow.closest(".verse-row") : null;
+        const targetTray = elemBelow ? elemBelow.closest(".magnet-tray-section") : null;
+
+        if (targetRow) {
+          const destVerseIdx = parseInt(targetRow.dataset.verseIndex, 10);
+          state.activeVerseIndex = destVerseIdx;
+
+          /* Remove da origem */
+          if (originLocation === "tray") {
+            state.trayMagnets = state.trayMagnets.filter((m) => m.id !== mag.id);
+          } else if (originLocation === "board") {
+            state.boardVerses[originVerseIdx].splice(originIndexInVerse, 1);
+          }
+
+          /* Calcula posição de inserção entre os ímãs já existentes na linha */
+          const destArray = state.boardVerses[destVerseIdx];
+          const tileNodes = Array.from(targetRow.querySelectorAll(".magnet-tile:not(.dragging)"));
+          let insertIndex = destArray.length;
+
+          for (let i = 0; i < tileNodes.length; i++) {
+            const r = tileNodes[i].getBoundingClientRect();
+            if (clientX < r.left + r.width / 2) {
+              insertIndex = i;
+              break;
+            }
+          }
+
+          destArray.splice(insertIndex, 0, mag);
+          playSound("clack");
+        } else if (targetTray && originLocation === "board") {
+          state.boardVerses[originVerseIdx].splice(originIndexInVerse, 1);
+          state.trayMagnets.push(mag);
+          playSound("pickup");
+        }
+
+        renderAll();
+      }
+
+      /* ========================================================================
+         CONFERÊNCIA DO POEMA, DICA DO VERSO E VITÓRIA
+         ======================================================================== */
+      function checkPoemSolution() {
+        if (state.gameMode !== "challenge" || state.isSolved) return;
+
+        state.attempts++;
+        document.getElementById("attempts-display").textContent = state.attempts;
+
+        let totalWords = 0;
+        let lockedWords = 0;
+        let hasMistakes = false;
+
+        state.targetVerses.forEach((targetTokens, vIdx) => {
+          totalWords += targetTokens.length;
+          const placed = state.boardVerses[vIdx];
+
+          placed.forEach((mag, idx) => {
+            if (mag.status === "locked") {
+              lockedWords++;
+              return;
+            }
+
+            if (idx < targetTokens.length && mag.text === targetTokens[idx]) {
+              mag.status = "locked";
+              mag.tilt = 0;
+              lockedWords++;
+            } else if (targetTokens.includes(mag.text)) {
+              mag.status = "near";
+              hasMistakes = true;
+            } else {
+              mag.status = "wrong";
+              hasMistakes = true;
+            }
+          });
+        });
+
+        renderAll();
+
+        /* Limpa a animação de tremor após 500ms */
+        setTimeout(() => {
+          state.boardVerses.forEach((row) =>
+            row.forEach((m) => {
+              if (m.status === "wrong") m.status = "neutral";
+            })
+          );
+        }, 500);
+
+        if (lockedWords === totalWords && state.trayMagnets.length === 0) {
+          state.isSolved = true;
+          stopTimer();
+          playSound("victory");
+          setFeedback("🎉 Perfeito! Todos os versos estão na ordem exata!", "success");
+          openVictoryModal();
+        } else if (hasMistakes) {
+          playSound("error");
+          setFeedback(
+            `🔒 ${lockedWords} de ${totalWords} palavras travadas! Ajuste as destacadas em amarelo/vermelho.`,
+            "warn"
+          );
+        } else {
+          playSound("lock");
+          setFeedback(
+            `✨ Ótimo! ${lockedWords} de ${totalWords} palavras já estão no lugar certo. Continue!`,
+            "success"
+          );
+        }
+      }
+
+      function revealVerseHint() {
+        if (state.gameMode !== "challenge" || state.isSolved) return;
+
+        /* Encontra o primeiro verso que ainda não tem a primeira palavra travada ou preenchida */
+        for (let vIdx = 0; vIdx < state.targetVerses.length; vIdx++) {
+          const firstWordText = state.targetVerses[vIdx][0];
+          const placedFirst = state.boardVerses[vIdx][0];
+
+          if (!placedFirst || placedFirst.text !== firstWordText) {
+            /* Procura um ímã correspondente na bandeja ou em outra linha destravada */
+            let foundMag = null;
+            const trayIdx = state.trayMagnets.findIndex((m) => m.text === firstWordText);
+            if (trayIdx !== -1) {
+              foundMag = state.trayMagnets.splice(trayIdx, 1)[0];
+            } else {
+              for (let r = 0; r < state.boardVerses.length; r++) {
+                const idx = state.boardVerses[r].findIndex(
+                  (m) => m.text === firstWordText && m.status !== "locked"
+                );
+                if (idx !== -1) {
+                  foundMag = state.boardVerses[r].splice(idx, 1)[0];
+                  break;
+                }
+              }
+            }
+
+            if (foundMag) {
+              foundMag.status = "locked";
+              foundMag.tilt = 0;
+              state.boardVerses[vIdx].unshift(foundMag);
+              state.activeVerseIndex = vIdx;
+              playSound("lock");
+              setFeedback(`💡 Dica aplicada: "${firstWordText}" iniciando o Verso ${vIdx + 1}!`, "success");
+              renderAll();
+              return;
+            }
+          }
+        }
+
+        setFeedback("💡 As primeiras palavras dos versos já estão posicionadas!", "info");
+      }
+
+      function openVictoryModal() {
+        const poem = state.poems.find((p) => p.id === state.currentPoemId);
+        if (!poem) return;
+
+        /* Calcula estrelas com base em tentativas e tempo */
+        let stars = "⭐⭐⭐";
+        if (state.attempts > 4 || state.timerSeconds > 180) stars = "⭐";
+        else if (state.attempts > 2 || state.timerSeconds > 95) stars = "⭐⭐";
+
+        document.getElementById("victory-stars").textContent = stars;
+        document.getElementById("victory-metrics").textContent =
+          `Tempo: ${formatTime(state.timerSeconds)} • Conferências: ${state.attempts}`;
+        document.getElementById("victory-poem-display").textContent = poem.text;
+        document.getElementById("victory-context-note").innerHTML =
+          `<strong>${poem.title}</strong> — ${poem.author}<br>${poem.context || ""}`;
+
+        launchCelebration();
+        setTimeout(() => victoryModal.classList.add("open"), 450);
+      }
+
+      /* ========================================================================
+         EXPORTAÇÃO DE IMAGEM PNG NA OFICINA LIVRE (CANVAS OFFLINE)
+         ======================================================================== */
+      function exportFreestyleArtwork() {
+        if (state.freestyleMagnets.length === 0) {
+          setFeedback("Coloque algumas palavras no quadro antes de salvar a imagem!", "warn");
+          return;
+        }
+
+        const srcRect = freestyleCanvasArea.getBoundingClientRect();
+        const exportCanvas = document.createElement("canvas");
+        exportCanvas.width = Math.max(640, Math.round(srcRect.width * 2));
+        exportCanvas.height = Math.max(400, Math.round(srcRect.height * 2));
+        const ctx = exportCanvas.getContext("2d");
+        const scale = exportCanvas.width / srcRect.width;
+
+        /* Fundo da Lousa */
+        ctx.fillStyle = state.theme === "darkboard" ? "#111827" : "#f8fafc";
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        /* Moldura sutil */
+        ctx.strokeStyle = state.theme === "darkboard" ? "#334155" : "#94a3b8";
+        ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, exportCanvas.width - 8, exportCanvas.height - 8);
+
+        /* Desenha cada ímã posicionado */
+        ctx.font = `600 ${Math.round(17 * scale)}px Georgia, serif`;
+        ctx.textBaseline = "middle";
+
+        state.freestyleMagnets.forEach((mag) => {
+          const metrics = ctx.measureText(mag.text);
+          const padX = 12 * scale;
+          const w = metrics.width + padX * 2;
+          const h = 36 * scale;
+          const x = mag.x * scale;
+          const y = mag.y * scale;
+
+          ctx.save();
+          ctx.translate(x + w / 2, y + h / 2);
+          ctx.rotate((mag.tilt * Math.PI) / 180);
+
+          ctx.fillStyle = state.theme === "darkboard" ? "#1e293b" : "#ffffff";
+          ctx.strokeStyle = state.theme === "darkboard" ? "#38bdf8" : "#94a3b8";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(-w / 2, -h / 2, w, h, 6 * scale);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = state.theme === "darkboard" ? "#f8fafc" : "#1e293b";
+          ctx.fillText(mag.text, -w / 2 + padX, 0);
+          ctx.restore();
+        });
+
+        /* Assinatura no rodapé */
+        ctx.font = `bold ${Math.round(12 * scale)}px sans-serif`;
+        ctx.fillStyle = "#64748b";
+        ctx.fillText("Quadro Magnético de Poesia • Obra Autoral", 16 * scale, exportCanvas.height - 16 * scale);
+
+        const link = document.createElement("a");
+        link.download = "minha-poesia-imantada.png";
+        link.href = exportCanvas.toDataURL("image/png");
+        link.click();
+        setFeedback("📸 Imagem da sua poesia salva com sucesso!", "success");
+      }
+
+      /* ========================================================================
+         CHUVA DE PÉTALAS / CONFETES DA VITÓRIA
+         ======================================================================== */
+      let celebrationId = null;
+
+      function launchCelebration() {
+        const canvas = document.getElementById("celebration-canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const palette = ["#10b981", "#0284c7", "#f59e0b", "#ec4899", "#8b5cf6"];
+        const items = Array.from({ length: 95 }, () => ({
+          x: Math.random() * canvas.width,
+          y: Math.random() * -canvas.height,
+          r: 5 + Math.random() * 6,
+          color: palette[Math.floor(Math.random() * palette.length)],
+          vy: 2.2 + Math.random() * 3,
+          vx: -1.4 + Math.random() * 2.8,
+          angle: Math.random() * 360,
+          spin: -3 + Math.random() * 6
+        }));
+
+        function frame() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          let active = false;
+          for (const p of items) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.angle += p.spin;
+            if (p.y < canvas.height + 20) active = true;
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.angle * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.r, p.r * 0.55, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+          if (active) celebrationId = requestAnimationFrame(frame);
+        }
+
+        stopCelebration();
+        celebrationId = requestAnimationFrame(frame);
+      }
+
+      function stopCelebration() {
+        if (celebrationId) {
+          cancelAnimationFrame(celebrationId);
+          celebrationId = null;
+        }
+        const canvas = document.getElementById("celebration-canvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      /* ========================================================================
+         ÁREA DO PROFESSOR / ADMIN (CRUD + EXPORTAR/IMPORTAR JSON)
+         ======================================================================== */
+      function renderAdminList() {
+        const listEl = document.getElementById("admin-poem-list");
+        document.getElementById("admin-count").textContent = state.poems.length;
+        listEl.innerHTML = "";
+
+        state.poems.forEach((p) => {
+          const item = document.createElement("div");
+          item.className = "admin-poem-item";
+          item.innerHTML = `
+            <div class="admin-poem-info">
+              <h4>${escapeHtml(p.title)}</h4>
+              <p>${escapeHtml(p.author)} • ${p.text.split(/\r?\n/).filter(Boolean).length} versos</p>
+            </div>
+            <div class="admin-item-btns">
+              <button type="button" class="mini-btn" data-edit="${p.id}">✏️ Editar</button>
+              <button type="button" class="mini-btn" data-del="${p.id}">🗑️</button>
+            </div>
+          `;
+
+          item.querySelector("[data-edit]").addEventListener("click", () => {
+            document.getElementById("edit-poem-id").value = p.id;
+            document.getElementById("input-poem-title").value = p.title;
+            document.getElementById("input-poem-author").value = p.author;
+            document.getElementById("input-poem-context").value = p.context || "";
+            document.getElementById("input-poem-text").value = p.text;
+            const radio = document.querySelector(`input[name="punct-mode"][value="${p.punctuationMode || "attached"}"]`);
+            if (radio) radio.checked = true;
+            document.getElementById("btn-save-poem").textContent = "💾 Atualizar Poema";
+            document.getElementById("btn-cancel-edit").style.display = "inline-flex";
+          });
+
+          item.querySelector("[data-del]").addEventListener("click", () => {
+            if (state.poems.length <= 1) {
+              setFeedback("Mantenha pelo menos 1 poema no acervo.", "warn");
+              return;
+            }
+            state.poems = state.poems.filter((x) => x.id !== p.id);
+            savePoemsToStorage();
+            populatePoemSelect();
+            renderAdminList();
+            if (state.currentPoemId === p.id) {
+              loadPoem(state.poems[0].id);
+            }
+          });
+
+          listEl.appendChild(item);
+        });
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function resetAdminForm() {
+        document.getElementById("poem-form").reset();
+        document.getElementById("edit-poem-id").value = "";
+        document.getElementById("btn-save-poem").textContent = "💾 Salvar Poema no Acervo";
+        document.getElementById("btn-cancel-edit").style.display = "none";
+      }
+
+      /* ========================================================================
+         VINCULAÇÃO DE EVENTOS DA INTERFACE
+         ======================================================================== */
+      function bindEvents() {
+        /* Seleção de Poema e Sorteio */
+        poemSelect.addEventListener("change", () => loadPoem(poemSelect.value));
+
+        document.getElementById("btn-random-poem").addEventListener("click", () => {
+          const candidates = state.poems.filter((p) => p.id !== state.currentPoemId);
+          const pool = candidates.length > 0 ? candidates : state.poems;
+          const chosen = pool[Math.floor(Math.random() * pool.length)];
+          loadPoem(chosen.id);
+        });
+
+        /* Alternância entre Desafio de Reconstrução e Oficina Livre */
+        document.querySelectorAll(".mode-tab").forEach((tab) => {
+          tab.addEventListener("click", () => {
+            document.querySelectorAll(".mode-tab").forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+            state.gameMode = tab.dataset.gameMode;
+            loadPoem(state.currentPoemId);
+          });
+        });
+
+        /* Tema Visual e Áudio */
+        document.getElementById("btn-theme").addEventListener("click", () => {
+          state.theme = state.theme === "whiteboard" ? "darkboard" : "whiteboard";
+          document.documentElement.setAttribute("data-theme", state.theme);
+          document.getElementById("theme-icon").textContent = state.theme === "whiteboard" ? "🌙" : "☀️";
+          document.getElementById("theme-label").textContent =
+            state.theme === "whiteboard" ? "Quadro Noturno" : "Quadro Branco";
+        });
+
+        document.getElementById("btn-sound").addEventListener("click", () => {
+          state.soundEnabled = !state.soundEnabled;
+          document.getElementById("sound-icon").textContent = state.soundEnabled ? "🔊" : "🔇";
+        });
+
+        /* Controles do Quadro */
+        document.getElementById("btn-toggle-slots").addEventListener("click", (e) => {
+          state.showSlots = !state.showSlots;
+          e.currentTarget.classList.toggle("active", state.showSlots);
+          renderAll();
+        });
+
+        document.getElementById("btn-hint-verse").addEventListener("click", revealVerseHint);
+
+        document.getElementById("btn-clear-board").addEventListener("click", () => {
+          state.boardVerses.forEach((row, rIdx) => {
+            const kept = [];
+            row.forEach((mag) => {
+              if (mag.status === "locked") {
+                kept.push(mag);
+              } else {
+                mag.status = "neutral";
+                state.trayMagnets.push(mag);
+              }
+            });
+            state.boardVerses[rIdx] = kept;
+          });
+          playSound("pickup");
+          renderAll();
+        });
+
+        document.getElementById("btn-clear-freestyle").addEventListener("click", () => {
+          state.freestyleMagnets.forEach((m) => state.trayMagnets.push(m));
+          state.freestyleMagnets = [];
+          playSound("pickup");
+          renderAll();
+        });
+
+        document.getElementById("btn-load-all-words").addEventListener("click", () => {
+          let uid = 1;
+          const combined = [];
+          state.poems.forEach((p) => {
+            const lines = tokenizePoemText(p.text, p.punctuationMode);
+            lines.forEach((tokens) => {
+              tokens.forEach((word) => {
+                combined.push({
+                  id: `mix-${uid++}`,
+                  text: word,
+                  tilt: randomTilt(),
+                  status: "neutral"
+                });
+              });
+            });
+          });
+          state.trayMagnets = shuffleArray(combined);
+          setFeedback(`🌈 ${combined.length} palavras de todos os poemas carregadas na bandeja!`, "success");
+          renderAll();
+        });
+
+        document.getElementById("btn-save-artwork").addEventListener("click", exportFreestyleArtwork);
+
+        document.getElementById("btn-shuffle-tray").addEventListener("click", () => {
+          state.trayMagnets = shuffleArray(state.trayMagnets);
+          playSound("pickup");
+          renderTray();
+        });
+
+        document.getElementById("btn-check-poem").addEventListener("click", checkPoemSolution);
+
+        /* Área do Professor (Modal) */
+        document.getElementById("btn-open-admin").addEventListener("click", () => {
+          renderAdminList();
+          adminModal.classList.add("open");
+        });
+
+        document.getElementById("btn-close-admin").addEventListener("click", () => {
+          resetAdminForm();
+          adminModal.classList.remove("open");
+        });
+
+        document.getElementById("btn-cancel-edit").addEventListener("click", resetAdminForm);
+
+        document.getElementById("poem-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const editId = document.getElementById("edit-poem-id").value;
+          const title = document.getElementById("input-poem-title").value.trim();
+          const author = document.getElementById("input-poem-author").value.trim();
+          const context = document.getElementById("input-poem-context").value.trim();
+          const text = document.getElementById("input-poem-text").value.trim();
+          const punctMode = document.querySelector('input[name="punct-mode"]:checked').value;
+
+          if (!title || !author || !text) return;
+
+          if (editId) {
+            const idx = state.poems.findIndex((p) => p.id === editId);
+            if (idx !== -1) {
+              state.poems[idx] = { ...state.poems[idx], title, author, context, text, punctuationMode: punctMode };
+            }
+          } else {
+            const newId = `custom-${Date.now()}`;
+            state.poems.unshift({
+              id: newId,
+              title,
+              author,
+              context,
+              text,
+              punctuationMode: punctMode
+            });
+            state.currentPoemId = newId;
+          }
+
+          savePoemsToStorage();
+          populatePoemSelect();
+          renderAdminList();
+          resetAdminForm();
+          loadPoem(state.currentPoemId);
+        });
+
+        /* Exportar & Importar JSON */
+        document.getElementById("btn-export-json").addEventListener("click", () => {
+          const blob = new Blob([JSON.stringify(state.poems, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "acervo-poesia-magnetica.json";
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+
+        document.getElementById("input-import-json").addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              const imported = JSON.parse(ev.target.result);
+              if (Array.isArray(imported) && imported.length > 0 && imported[0].text) {
+                state.poems = imported;
+                savePoemsToStorage();
+                populatePoemSelect();
+                renderAdminList();
+                loadPoem(state.poems[0].id);
+                setFeedback(`📥 ${imported.length} poemas importados com sucesso!`, "success");
+              }
+            } catch (err) {
+              setFeedback("Arquivo JSON inválido.", "warn");
+            }
+            e.target.value = "";
+          };
+          reader.readAsText(file);
+        });
+
+        document.getElementById("btn-restore-defaults").addEventListener("click", () => {
+          state.poems = JSON.parse(JSON.stringify(DEFAULT_POEMS));
+          savePoemsToStorage();
+          populatePoemSelect();
+          renderAdminList();
+          loadPoem(state.poems[0].id);
+        });
+
+        /* Modal de Vitória */
+        document.getElementById("btn-close-victory").addEventListener("click", () => {
+          victoryModal.classList.remove("open");
+        });
+
+        document.getElementById("btn-victory-next").addEventListener("click", () => {
+          victoryModal.classList.remove("open");
+          const curIdx = state.poems.findIndex((p) => p.id === state.currentPoemId);
+          const nextPoem = state.poems[(curIdx + 1) % state.poems.length];
+          loadPoem(nextPoem.id);
+        });
+
+        document.getElementById("btn-victory-freestyle").addEventListener("click", () => {
+          victoryModal.classList.remove("open");
+          document.querySelectorAll(".mode-tab").forEach((t) => {
+            t.classList.toggle("active", t.dataset.gameMode === "freestyle");
+          });
+          state.gameMode = "freestyle";
+          loadPoem(state.currentPoemId);
+        });
+      }
+
+      /* ========================================================================
+         INICIALIZAÇÃO
+         ======================================================================== */
+      window.addEventListener("DOMContentLoaded", () => {
+        loadPoemsFromStorage();
+        populatePoemSelect();
+        bindEvents();
+        loadPoem(state.poems[0].id);
+      });
+    })();
+  </script>
+</body>
+</html>

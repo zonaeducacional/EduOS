@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-catalog-install"
+description = "Enables the catalog_install command without any pre-configured scope."
+commands.allow = ["catalog_install"]
+
+[[permission]]
+identifier = "deny-catalog-install"
+description = "Denies the catalog_install command without any pre-configured scope."
+commands.deny = ["catalog_install"]

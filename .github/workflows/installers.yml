@@ -1,0 +1,89 @@
+name: Instaladores de teste do EduOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installers:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
+      RUSTUP_TOOLCHAIN: stable
+      VITE_EDUOS_WEB_STORE_URL: ${{ vars.EDUOS_WEB_STORE_URL }}
+      EDUOS_ALLOW_MISSING_NATIVE_APPS: '1'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runner: ubuntu-22.04
+            bundle: deb
+            artifact: target/release/bundle/deb/*.deb
+          - platform: windows-x64
+            runner: windows-2025
+            bundle: nsis
+            artifact: target/release/bundle/nsis/*-setup.exe
+          - platform: macos-arm64
+            runner: macos-15
+            bundle: dmg
+            artifact: target/release/bundle/dmg/*.dmg
+          - platform: macos-intel
+            runner: macos-15-intel
+            bundle: dmg
+            artifact: target/release/bundle/dmg/*.dmg
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v6
+      - name: Instalar dependências JavaScript
+        run: pnpm install --frozen-lockfile
+      - name: Instalar dependências Linux do Tauri
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - name: Baixar aplicativos nativos fornecidos para este teste
+        if: runner.os != 'macOS'
+        shell: bash
+        env:
+          VIBELAB_LINUX_URL: ${{ secrets.EDUOS_VIBELAB_HORARIO_APPIMAGE_URL }}
+          VIBELAB_WINDOWS_URL: ${{ secrets.EDUOS_VIBELAB_HORARIO_EXE_URL }}
+          GESTAO_LINUX_URL: ${{ secrets.EDUOS_GESTAO_NOTAS_APPIMAGE_URL }}
+          GESTAO_LINUX_SHA256: ${{ vars.EDUOS_GESTAO_NOTAS_APPIMAGE_SHA256 }}
+        run: |
+          download() {
+            local url="$1" hash="$2" destination="$3"
+            if [[ -z "$url" ]]; then
+              return
+            fi
+            [[ "$hash" =~ ^[A-Fa-f0-9]{64}$ ]]
+            curl --fail --silent --show-error --location --retry 3 --proto '=https' --proto-redir '=https' --output "$destination.tmp" -- "$url"
+            printf '%s  %s\n' "${hash,,}" "$destination.tmp" | sha256sum --check --status
+            mv "$destination.tmp" "$destination"
+          }
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            resources=apps/desktop/src-tauri/native-apps
+            download "$VIBELAB_LINUX_URL" 4d186b36bafa6a5c6ca2ff41419bbaa7393568ca7fc05e3181d634f2d69758f5 "$resources/vibelab-horario.AppImage"
+            download "$GESTAO_LINUX_URL" "$GESTAO_LINUX_SHA256" "$resources/gestao-notas.AppImage"
+          else
+            resources=apps/desktop/src-tauri/native-apps-windows
+            download "$VIBELAB_WINDOWS_URL" 56d7df06af4e700df6574a3b8f81ef6444a785a04dfbb7a6ede833156fb02e73 "$resources/vibelab-horario.exe"
+          fi
+      - name: Gerar instalador
+        run: pnpm tauri build --ci --bundles ${{ matrix.bundle }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: eduos-teste-${{ matrix.platform }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+          compression-level: 0

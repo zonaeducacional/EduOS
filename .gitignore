@@ -1,0 +1,13 @@
+node_modules/
+dist/
+target/
+apps/desktop/src-tauri/native-apps/*.tmp
+apps/desktop/src-tauri/native-apps-windows/*.tmp
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/native-apps/*.AppImage
+apps/desktop/src-tauri/native-apps/.staging-*/
+apps/desktop/src-tauri/native-apps/mini-navegador/
+lojinha-data.json
+lojinha-data.json.tmp
+apps/desktop/src-tauri/native-apps-windows/*.exe
+apps/desktop/src-tauri/native-apps-windows/.staging-*/

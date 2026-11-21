@@ -1,0 +1,19 @@
+:root { color-scheme: light dark; font: 16px/1.5 system-ui, sans-serif; }
+body { margin: 0; }
+main { max-width: 72rem; margin: auto; padding: 2rem clamp(1rem, 5vw, 4rem); }
+h1 { font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -.045em; }
+h2 { font-size: 1.2rem; }
+.grid, .editor { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.card { display: flex; flex-direction: column; align-items: start; padding: 1.25rem; border: 1px solid color-mix(in srgb, CanvasText 23%, Canvas); border-radius: 1rem; overflow-wrap: anywhere; }
+.card h2 { margin: .3rem 0 0; }
+.card p { margin: .35rem 0 1rem; flex: 1; }
+.card img, .icon { border-radius: .7rem; margin-bottom: .75rem; object-fit: contain; }
+.icon { display: grid; place-items: center; width: 48px; height: 48px; background: #5542a9; color: white; }
+.button, button { display: inline-block; border: 0; border-radius: .55rem; padding: .5rem .9rem; background: #5542a9; color: white; text-decoration: none; font: inherit; }
+button { cursor: pointer; }
+form label { display: grid; gap: .25rem; margin-bottom: .9rem; }
+input, textarea { font: inherit; padding: .45rem; }
+textarea { min-height: 6rem; resize: vertical; }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
+footer { margin-top: 2.5rem; font-size: .85rem; }
+[role=alert] { font-weight: bold; }
