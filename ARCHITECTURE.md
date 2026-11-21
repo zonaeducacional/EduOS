@@ -53,3 +53,9 @@ O **Mini Navegador** abre em **Iniciar → Internet**. O instalador Linux x86-64
 O instalador inclui os builds originais de Notes, Email, Photo Studio, Video Studio, Audio Studio e Music Studio do HeyPuter Everything. O preparo busca uma revisão fixa, instala as dependências a partir dos lockfiles e compila os aplicativos. O Tauri incorpora os builds, os avisos de licença e o arquivo de código-fonte da revisão.
 
 Cada app é servido por uma porta própria vinculada somente à interface de loopback. O Puter exige uma origem HTTP ou HTTPS para autenticação e acesso ao serviço. As janelas auxiliares podem abrir o login do Puter e ficam fora da capacidade da janela principal. O EduOS usa um armazenamento da webview por perfil e fecha as janelas Puter ao trocar de perfil. A política de conteúdo da área de trabalho continua a restringir conexões ao IPC local.
+
+## Vitrine online
+
+A Lojinha desktop mantém a instalação local de pacotes assinados e oferece o acesso à vitrine web central. A URL pública é definida ao compilar. No Linux x64, a vitrine abre no Mini Navegador. No Windows e no macOS, ela abre no navegador padrão do sistema.
+
+O serviço Node.js entrega a página pública e o painel **Administrar Lojinha**. A conta de publicação usa credenciais próprias do serviço. Cada card guarda nome, categoria, descrição, link HTTPS e ícone opcional. O catálogo fica em um arquivo JSON persistente e a página pública exibe os cards publicados. Consulte a [configuração de hospedagem](apps/lojinha-web/README.md).
